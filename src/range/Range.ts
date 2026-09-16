@@ -1,3 +1,4 @@
+import { Comparator } from '@fundamentry/order';
 import { type Comparable, type Stringable } from '@fundamentry/trait';
 
 import { Cut } from '#project/cut';
@@ -8,7 +9,9 @@ export namespace Range {
   }
 }
 
-export class Range<T extends Comparable<T> & Stringable> implements Stringable {
+export class Range<T extends Comparable<T> & Stringable>
+  implements Comparable<Range<T>>, Stringable
+{
   #lower: Cut<T>;
 
   #upper: Cut<T>;
@@ -79,6 +82,12 @@ export class Range<T extends Comparable<T> & Stringable> implements Stringable {
 
   toString(): string {
     return `${this.#lower.describeAsLowerBound()}..${this.#upper.describeAsUpperBound()}`;
+  }
+
+  compareTo(other: Range<T>): number {
+    return Comparator.comparingWith<Range<T>, Cut<T>>(range => range.#lower)
+      .thenComparingByWith(range => range.#upper)
+      .compare(this, other);
   }
 
   hasLowerBound(): boolean {

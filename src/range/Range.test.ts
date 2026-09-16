@@ -148,6 +148,38 @@ describe('Range', () => {
     });
   });
 
+  describe('compareTo', () => {
+    it('must order by lower bound when lower bounds differ', () => {
+      const a = Range.closed(new TestComparable(1), new TestComparable(9));
+      const b = Range.closed(new TestComparable(3), new TestComparable(4));
+
+      expect(a.compareTo(b)).toBeLessThan(0);
+      expect(b.compareTo(a)).toBeGreaterThan(0);
+    });
+
+    it('must order a closed lower bound before an open lower bound at the same endpoint', () => {
+      const a = Range.closed(new TestComparable(3), new TestComparable(5));
+      const b = Range.open(new TestComparable(3), new TestComparable(9));
+
+      expect(a.compareTo(b)).toBeLessThan(0);
+    });
+
+    it('must fall back to the upper bound when lower bounds are equal', () => {
+      const a = Range.closed(new TestComparable(3), new TestComparable(5));
+      const b = Range.closed(new TestComparable(3), new TestComparable(9));
+
+      expect(a.compareTo(b)).toBeLessThan(0);
+      expect(b.compareTo(a)).toBeGreaterThan(0);
+    });
+
+    it('must return 0 for ranges with identical bounds', () => {
+      const a = Range.closed(new TestComparable(3), new TestComparable(5));
+      const b = Range.closed(new TestComparable(3), new TestComparable(5));
+
+      expect(a.compareTo(b)).toBe(0);
+    });
+  });
+
   describe('hasLowerBound', () => {
     it('must return true when the range has a lower bound', () => {
       expect(Range.atLeast(new TestComparable(3)).hasLowerBound()).toBe(true);
