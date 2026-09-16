@@ -118,7 +118,9 @@ export class Range<T extends Comparable<T> & Stringable> implements Stringable {
   }
 
   containsAll(values: Iterable<T>): boolean {
-    return [...values].every(value => this.contains(value));
+    for (const value of values) if (!this.contains(value)) return false;
+
+    return true;
   }
 
   encloses(other: Range<T>): boolean {

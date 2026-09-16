@@ -327,6 +327,23 @@ describe('Range', () => {
 
       expect(range.containsAll(values)).toBe(false);
     });
+
+    it('must stop pulling from an unbounded iterable once a value fails containment', () => {
+      const range = Range.closed(new TestComparable(1), new TestComparable(5));
+
+      let pulled = 0;
+
+      function* excludedValues(): Generator<TestComparable> {
+        for (;;) {
+          pulled += 1;
+
+          yield new TestComparable(10);
+        }
+      }
+
+      expect(range.containsAll(excludedValues())).toBe(false);
+      expect(pulled).toBe(1);
+    });
   });
 
   describe('encloses', () => {

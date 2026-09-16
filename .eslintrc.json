@@ -45,7 +45,8 @@
       ],
       "rules": {
         "@typescript-eslint/no-namespace": "off",
-        "class-methods-use-this": "off"
+        "class-methods-use-this": "off",
+        "no-restricted-syntax": "off"
       }
     },
     {
