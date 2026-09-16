@@ -32,6 +32,12 @@
         "patterns": [
           "src/range/**"
         ]
+      },
+      {
+        "name": "range-set",
+        "patterns": [
+          "src/range-set/**"
+        ]
       }
     ],
     "rules": [
@@ -43,6 +49,12 @@
         "from": "range",
         "allow": [
           "cut"
+        ]
+      },
+      {
+        "from": "range-set",
+        "allow": [
+          "range"
         ]
       }
     ]
