@@ -1,3 +1,18 @@
+# 2.0.0
+
+### 🚀 Features
+
+- ⚠️  migrate to '@fundamentry/trait' 3.0.0 ([26e4cb5](https://github.com/fundamentry/range/commit/26e4cb5))
+
+### 🩹 Fixes
+
+- resolve internal imports to compiled declarations for consumers ([b9cb985](https://github.com/fundamentry/range/commit/b9cb985))
+- exclude test files from the published package ([4b92e87](https://github.com/fundamentry/range/commit/4b92e87))
+
+### ⚠️  Breaking Changes
+
+- migrate to '@fundamentry/trait' 3.0.0  ([26e4cb5](https://github.com/fundamentry/range/commit/26e4cb5))
+
 ## 1.1.0
 
 ### 🚀 Features
