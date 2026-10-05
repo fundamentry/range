@@ -34,6 +34,10 @@ export class RangeSet<
     return `{${this.#ranges.map(range => range.toString()).join(', ')}}`;
   }
 
+  [Symbol.toPrimitive](): string {
+    return this.toString();
+  }
+
   contains(value: T): boolean {
     return this.#ranges.some(range => range.contains(value));
   }

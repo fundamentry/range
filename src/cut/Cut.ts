@@ -1,5 +1,5 @@
 import { Comparator } from '@fundamentry/order';
-import { type Comparable, type Stringable } from '@fundamentry/trait';
+import { Comparable, type Stringable } from '@fundamentry/trait';
 
 export namespace Cut {
   export type Variant<T extends Comparable<T> & Stringable> =
@@ -39,9 +39,10 @@ export class Cut<T extends Comparable<T> & Stringable> implements Comparable<
 
     if (variant.kind === 'BELOW_ALL') return '(-∞';
     if (variant.kind === 'ABOVE_ALL') return '(+∞';
-    if (variant.kind === 'BELOW_VALUE') return `[${variant.value.toString()}`;
+    if (variant.kind === 'BELOW_VALUE')
+      return `[${variant.value[Symbol.toPrimitive]('string')}`;
 
-    return `(${variant.value.toString()}`;
+    return `(${variant.value[Symbol.toPrimitive]('string')}`;
   }
 
   describeAsUpperBound(): string {
@@ -51,9 +52,10 @@ export class Cut<T extends Comparable<T> & Stringable> implements Comparable<
 
     if (variant.kind === 'BELOW_ALL') return '-∞)';
 
-    if (variant.kind === 'ABOVE_VALUE') return `${variant.value.toString()}]`;
+    if (variant.kind === 'ABOVE_VALUE')
+      return `${variant.value[Symbol.toPrimitive]('string')}]`;
 
-    return `${variant.value.toString()})`;
+    return `${variant.value[Symbol.toPrimitive]('string')})`;
   }
 
   isBelowValue(): boolean {
@@ -80,9 +82,9 @@ export class Cut<T extends Comparable<T> & Stringable> implements Comparable<
     if (variant.kind === 'ABOVE_ALL') return false;
 
     if (variant.kind === 'BELOW_VALUE')
-      return variant.value.compareTo(value) <= 0;
+      return variant.value[Comparable.symbol](value) <= 0;
 
-    return variant.value.compareTo(value) < 0;
+    return variant.value[Comparable.symbol](value) < 0;
   }
 
   compareTo(other: Cut<T>): number {
@@ -90,5 +92,9 @@ export class Cut<T extends Comparable<T> & Stringable> implements Comparable<
       .thenComparingByOptionalWith(cut => cut.endpoint())
       .thenComparingByBoolean(cut => cut.isAboveValue())
       .compare(this, other);
+  }
+
+  [Comparable.symbol](other: Cut<T>): number {
+    return this.compareTo(other);
   }
 }

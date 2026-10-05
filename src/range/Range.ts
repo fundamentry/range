@@ -1,5 +1,5 @@
 import { Comparator } from '@fundamentry/order';
-import { type Comparable, type Stringable } from '@fundamentry/trait';
+import { Comparable, type Stringable } from '@fundamentry/trait';
 
 import { Cut } from '#project/cut';
 
@@ -88,6 +88,14 @@ export class Range<T extends Comparable<T> & Stringable>
     return Comparator.comparingWith<Range<T>, Cut<T>>(range => range.#lower)
       .thenComparingByWith(range => range.#upper)
       .compare(this, other);
+  }
+
+  [Comparable.symbol](other: Range<T>): number {
+    return this.compareTo(other);
+  }
+
+  [Symbol.toPrimitive](): string {
+    return this.toString();
   }
 
   hasLowerBound(): boolean {

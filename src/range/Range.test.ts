@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { type Comparable, type Stringable } from '@fundamentry/trait';
+import { Comparable, type Stringable } from '@fundamentry/trait';
 
 import { Range } from './Range.js';
 
@@ -15,11 +15,11 @@ class TestComparable implements Comparable<TestComparable>, Stringable {
     return this.#value;
   }
 
-  compareTo(other: TestComparable): number {
+  [Comparable.symbol](other: TestComparable): number {
     return this.value() - other.value();
   }
 
-  toString(): string {
+  [Symbol.toPrimitive](): string {
     return String(this.#value);
   }
 }
@@ -148,6 +148,17 @@ describe('Range', () => {
     });
   });
 
+  describe('[Symbol.toPrimitive]', () => {
+    it('must format a range using interval notation when coerced to a string', () => {
+      const range = Range.closedOpen(
+        new TestComparable(3),
+        new TestComparable(5)
+      );
+
+      expect(String(range)).toBe('[3..5)');
+    });
+  });
+
   describe('compareTo', () => {
     it('must order by lower bound when lower bounds differ', () => {
       const a = Range.closed(new TestComparable(1), new TestComparable(9));
@@ -177,6 +188,16 @@ describe('Range', () => {
       const b = Range.closed(new TestComparable(3), new TestComparable(5));
 
       expect(a.compareTo(b)).toBe(0);
+    });
+  });
+
+  describe('[Comparable.symbol]', () => {
+    it('must delegate to compareTo', () => {
+      const a = Range.closed(new TestComparable(1), new TestComparable(9));
+      const b = Range.closed(new TestComparable(3), new TestComparable(4));
+
+      expect(a[Comparable.symbol](b)).toBe(a.compareTo(b));
+      expect(b[Comparable.symbol](a)).toBe(b.compareTo(a));
     });
   });
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { type Comparable, type Stringable } from '@fundamentry/trait';
+import { Comparable, type Stringable } from '@fundamentry/trait';
 
 import { Cut } from './Cut.js';
 
@@ -15,11 +15,11 @@ class TestComparable implements Comparable<TestComparable>, Stringable {
     return this.#value;
   }
 
-  compareTo(other: TestComparable): number {
+  [Comparable.symbol](other: TestComparable): number {
     return this.value() - other.value();
   }
 
-  toString(): string {
+  [Symbol.toPrimitive](): string {
     return String(this.#value);
   }
 }
@@ -294,6 +294,18 @@ describe('Cut', () => {
 
       expect(below.compareTo(above)).toBe(-1);
       expect(above.compareTo(below)).toBe(1);
+    });
+  });
+
+  describe('[Comparable.symbol]', () => {
+    it('must delegate to compareTo', () => {
+      const value = new TestComparable(3);
+
+      const below = Cut.belowValue(value);
+      const above = Cut.aboveValue(value);
+
+      expect(below[Comparable.symbol](above)).toBe(below.compareTo(above));
+      expect(above[Comparable.symbol](below)).toBe(above.compareTo(below));
     });
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { type Comparable, type Stringable } from '@fundamentry/trait';
+import { Comparable, type Stringable } from '@fundamentry/trait';
 
 import { Range } from '#project/range';
 
@@ -17,11 +17,11 @@ class TestComparable implements Comparable<TestComparable>, Stringable {
     return this.#value;
   }
 
-  compareTo(other: TestComparable): number {
+  [Comparable.symbol](other: TestComparable): number {
     return this.value() - other.value();
   }
 
-  toString(): string {
+  [Symbol.toPrimitive](): string {
     return String(this.#value);
   }
 }
@@ -150,6 +150,17 @@ describe('RangeSet', () => {
       ]);
 
       expect(rangeSet.toString()).toBe('{[1..3], [10..12]}');
+    });
+  });
+
+  describe('[Symbol.toPrimitive]', () => {
+    it('must format a range set in interval notation when coerced to a string', () => {
+      const rangeSet = RangeSet.from([
+        Range.closed(new TestComparable(1), new TestComparable(3)),
+        Range.closed(new TestComparable(10), new TestComparable(12)),
+      ]);
+
+      expect(String(rangeSet)).toBe('{[1..3], [10..12]}');
     });
   });
 
