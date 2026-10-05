@@ -1,3 +1,9 @@
+## 2.1.0
+
+### 🚀 Features
+
+- add 'canonical' to 'Range' ([f08c408](https://github.com/fundamentry/range/commit/f08c408))
+
 # 2.0.0
 
 ### 🚀 Features
