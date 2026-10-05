@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { Integer } from '@fundamentry/scalar';
 import { Comparable, type Stringable } from '@fundamentry/trait';
 
 import { Cut } from './Cut.js';
@@ -206,6 +207,22 @@ describe('Cut', () => {
       const cut = Cut.aboveValue(new TestComparable(3));
 
       expect(cut.isLessThan(new TestComparable(2))).toBe(false);
+    });
+  });
+
+  describe('canonical', () => {
+    it('must turn an above-value cut into a below-value cut at the successor', () => {
+      const cut = Cut.aboveValue(Integer.of(1));
+
+      expect(cut.canonical().compareTo(Cut.belowValue(Integer.of(2)))).toBe(0);
+    });
+
+    it.each([
+      ['below-value', Cut.belowValue(Integer.of(1))],
+      ['unbounded-below', Cut.belowAll<Integer>()],
+      ['unbounded-above', Cut.aboveAll<Integer>()],
+    ])('must return a %s cut unchanged', (_, cut) => {
+      expect(cut.canonical()).toBe(cut);
     });
   });
 

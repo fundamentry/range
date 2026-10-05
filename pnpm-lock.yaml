@@ -22,11 +22,14 @@ catalogs:
       specifier: 1.1.11
       version: 1.1.11
     '@fundamentry/order':
-      specifier: 1.0.1
-      version: 1.0.1
+      specifier: 1.0.2
+      version: 1.0.2
+    '@fundamentry/scalar':
+      specifier: 4.1.0
+      version: 4.1.0
     '@fundamentry/trait':
-      specifier: 3.0.0
-      version: 3.0.0
+      specifier: 3.1.0
+      version: 3.1.0
     '@fundamentry/typescript-config':
       specifier: 2.0.0
       version: 2.0.0
@@ -109,10 +112,10 @@ importers:
     dependencies:
       '@fundamentry/order':
         specifier: 'catalog:'
-        version: 1.0.1
+        version: 1.0.2
       '@fundamentry/trait':
         specifier: 'catalog:'
-        version: 3.0.0
+        version: 3.1.0
     devDependencies:
       '@commitlint/cli':
         specifier: 'catalog:'
@@ -129,6 +132,9 @@ importers:
       '@fundamentry/eslint-config-typescript':
         specifier: 'catalog:'
         version: 1.1.11(@typescript-eslint/eslint-plugin@8.71.0(@typescript-eslint/parser@8.71.0(eslint@8.57.1(supports-color@7.2.0))(supports-color@7.2.0)(typescript@6.0.3))(eslint@8.57.1(supports-color@7.2.0))(supports-color@7.2.0)(typescript@6.0.3))(@typescript-eslint/parser@8.71.0(eslint@8.57.1(supports-color@7.2.0))(supports-color@7.2.0)(typescript@6.0.3))(eslint-config-airbnb-base@15.0.0(eslint-plugin-import@2.32.0)(eslint@8.57.1(supports-color@7.2.0)))(eslint-import-resolver-typescript@4.4.5)(eslint-plugin-deprecation@3.0.0(eslint@8.57.1(supports-color@7.2.0))(supports-color@7.2.0)(typescript@6.0.3))(eslint-plugin-import@2.32.0)(eslint@8.57.1(supports-color@7.2.0))(typescript@6.0.3)
+      '@fundamentry/scalar':
+        specifier: 'catalog:'
+        version: 4.1.0
       '@fundamentry/typescript-config':
         specifier: 'catalog:'
         version: 2.0.0(typescript@6.0.3)
@@ -976,11 +982,14 @@ packages:
       eslint-plugin-import: 2.32.0
       typescript: 6.0.3
 
-  '@fundamentry/order@1.0.1':
-    resolution: {integrity: sha512-vLV6q4KPINpFmOiOujCzU8/CtSdn6FZhagdE6h2EXrEusppZsgmrVN2NOvlMGJy8vstN7FYE3cWFPHeZ6ubi8w==, tarball: https://npm.pkg.github.com/download/@fundamentry/order/1.0.1/f15894b98fffcd20fe7333b33eb62fb5839e7594}
+  '@fundamentry/order@1.0.2':
+    resolution: {integrity: sha512-TLDG/EWFDzJ0lYXKlcGRy12asoJmx5oW5OTkxiLvTbi8S5KKiWtz+8Od+BK/+lygcFd+/1Yws18NYtqxjPKuGw==, tarball: https://npm.pkg.github.com/download/@fundamentry/order/1.0.2/81af19d319ea9a99d78678c2722e102148373cd8}
 
-  '@fundamentry/trait@3.0.0':
-    resolution: {integrity: sha512-DMSmKKj4OFcFHl5KSnOcJ+eM5r/k4MoICH907HKsvedH3q0DuI7aWAToSvNlzQ4JfbC88HPv2SpqxeAvshYhrQ==, tarball: https://npm.pkg.github.com/download/@fundamentry/trait/3.0.0/377bd12f8921f3a5f3b375ef14ad93ccb61f5ae2}
+  '@fundamentry/scalar@4.1.0':
+    resolution: {integrity: sha512-k0KIKSI1WcvfpxLisriUssEoSLGlFDp+RDe8SSwgHGA9Pk3QdYBhco+nXQoR6/sBpBwu/Zo3XAIcZ9rbj8xG9w==, tarball: https://npm.pkg.github.com/download/@fundamentry/scalar/4.1.0/50adbb7b3afa1f6f74b5ca5024789546d8367390}
+
+  '@fundamentry/trait@3.1.0':
+    resolution: {integrity: sha512-grCjb9syAqMGLtqBw+MbF8sipOXT68mCeb3UQHeauJytnasNXaBWajdqgQz8Z8q4h6JOwi9zEpNoPmDB+x4hPQ==, tarball: https://npm.pkg.github.com/download/@fundamentry/trait/3.1.0/ebe7048aca80d5899267a865a98bc2ba2c281923}
 
   '@fundamentry/typescript-config@2.0.0':
     resolution: {integrity: sha512-0kN2ZyyV6ZkS0OIp66o+HTVU0JHVZsMQmAh09A6YffpPyPCagUsLLFNtH4SQ8gti5aoxXFvyVXvqHTJKBFLhVw==, tarball: https://npm.pkg.github.com/download/@fundamentry/typescript-config/2.0.0/847fa6d298999c18914fdffafb6ddd2318056ab7}
@@ -4912,11 +4921,15 @@ snapshots:
       eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.71.0(eslint@8.57.1(supports-color@7.2.0))(supports-color@7.2.0)(typescript@6.0.3))(eslint-import-resolver-typescript@4.4.5)(eslint@8.57.1(supports-color@7.2.0))
       typescript: 6.0.3
 
-  '@fundamentry/order@1.0.1':
+  '@fundamentry/order@1.0.2':
     dependencies:
-      '@fundamentry/trait': 3.0.0
+      '@fundamentry/trait': 3.1.0
 
-  '@fundamentry/trait@3.0.0': {}
+  '@fundamentry/scalar@4.1.0':
+    dependencies:
+      '@fundamentry/trait': 3.1.0
+
+  '@fundamentry/trait@3.1.0': {}
 
   '@fundamentry/typescript-config@2.0.0(typescript@6.0.3)':
     dependencies:

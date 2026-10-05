@@ -1,5 +1,5 @@
 import { Comparator } from '@fundamentry/order';
-import { Comparable, type Stringable } from '@fundamentry/trait';
+import { Comparable, Discrete, type Stringable } from '@fundamentry/trait';
 
 export namespace Cut {
   export type Variant<T extends Comparable<T> & Stringable> =
@@ -85,6 +85,16 @@ export class Cut<T extends Comparable<T> & Stringable> implements Comparable<
       return variant.value[Comparable.symbol](value) <= 0;
 
     return variant.value[Comparable.symbol](value) < 0;
+  }
+
+  canonical<D extends Comparable<D> & Stringable>(
+    this: Cut<D & Discrete<D>>
+  ): Cut<D> {
+    const variant = this.#variant;
+
+    return variant.kind === 'ABOVE_VALUE'
+      ? Cut.belowValue(variant.value[Discrete.successor]())
+      : this;
   }
 
   compareTo(other: Cut<T>): number {

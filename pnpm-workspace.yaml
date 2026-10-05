@@ -4,8 +4,9 @@ catalog:
   '@fundamentry/eslint-config-json': 1.4.7
   '@fundamentry/eslint-config-prettier': 1.0.6
   '@fundamentry/eslint-config-typescript': 1.1.11
-  '@fundamentry/order': 1.0.1
-  '@fundamentry/trait': 3.0.0
+  '@fundamentry/order': 1.0.2
+  '@fundamentry/scalar': 4.1.0
+  '@fundamentry/trait': 3.1.0
   '@fundamentry/typescript-config': 2.0.0
   '@nx/js': 23.2.1
   '@typescript-eslint/eslint-plugin': 8.71.0
@@ -37,5 +38,6 @@ allowBuilds:
   'unrs-resolver': false
 
 minimumReleaseAgeExclude:
-  - '@fundamentry/order@1.0.1'
-  - '@fundamentry/trait@3.0.0'
+  - '@fundamentry/order@1.0.2'
+  - '@fundamentry/scalar@4.1.0'
+  - '@fundamentry/trait@3.1.0'

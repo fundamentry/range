@@ -1,5 +1,5 @@
 import { Comparator } from '@fundamentry/order';
-import { Comparable, type Stringable } from '@fundamentry/trait';
+import { Comparable, type Discrete, type Stringable } from '@fundamentry/trait';
 
 import { Cut } from '#project/cut';
 
@@ -172,5 +172,11 @@ export class Range<T extends Comparable<T> & Stringable>
       this.#upper.compareTo(other.#upper) >= 0 ? this.#upper : other.#upper;
 
     return new Range(lower, upper);
+  }
+
+  canonical<D extends Comparable<D> & Stringable>(
+    this: Range<D & Discrete<D>>
+  ): Range<D> {
+    return new Range(this.#lower.canonical(), this.#upper.canonical());
   }
 }

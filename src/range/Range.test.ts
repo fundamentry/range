@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { Integer } from '@fundamentry/scalar';
 import { Comparable, type Stringable } from '@fundamentry/trait';
 
 import { Range } from './Range.js';
@@ -613,6 +614,78 @@ describe('Range', () => {
       const b = Range.atMost(new TestComparable(1));
 
       expect(a.span(b).toString()).toBe('(-∞..+∞)');
+    });
+  });
+
+  describe('canonical', () => {
+    const semantics: [Range<Integer>, string][] = [
+      [Range.closed(Integer.of(1), Integer.of(2)), '[1..3)'],
+      [Range.open(Integer.of(0), Integer.of(3)), '[1..3)'],
+      [Range.openClosed(Integer.of(0), Integer.of(2)), '[1..3)'],
+      [Range.closedOpen(Integer.of(1), Integer.of(3)), '[1..3)'],
+      [Range.atLeast(Integer.of(2)), '[2..+∞)'],
+      [Range.greaterThan(Integer.of(1)), '[2..+∞)'],
+      [Range.atMost(Integer.of(3)), '(-∞..4)'],
+      [Range.all<Integer>(), '(-∞..+∞)'],
+      [Range.open(Integer.of(1), Integer.of(2)), '[2..2)'],
+      [Range.singleton(Integer.of(1)), '[1..2)'],
+    ];
+
+    it.each(semantics)('must canonicalise %s as %s', (range, expected) => {
+      expect(range.canonical().toString()).toBe(expected);
+    });
+
+    it.each(semantics)(
+      'must contain the same integers as %s once canonicalised',
+      range => {
+        const canonical = range.canonical();
+
+        for (let n = -2; n <= 6; n += 1)
+          expect(canonical.contains(Integer.of(n))).toBe(
+            range.contains(Integer.of(n))
+          );
+      }
+    );
+
+    it.each(semantics)('must be idempotent for %s', range => {
+      const canonical = range.canonical();
+
+      expect(canonical.canonical().compareTo(canonical)).toBe(0);
+    });
+
+    it.each(semantics)(
+      'must give %s a closed or unbounded lower bound and an open or unbounded upper bound',
+      range => {
+        const canonical = range.canonical();
+
+        expect(canonical.lowerBoundType()).not.toBe('OPEN');
+        expect(canonical.upperBoundType()).not.toBe('CLOSED');
+      }
+    );
+
+    it('must canonicalise ranges with the same integers to equal ranges', () => {
+      const a = Range.open(Integer.of(0), Integer.of(3)).canonical();
+      const b = Range.closed(Integer.of(1), Integer.of(2)).canonical();
+      const c = Range.openClosed(Integer.of(0), Integer.of(2)).canonical();
+
+      expect(a.compareTo(b)).toBe(0);
+      expect(b.compareTo(c)).toBe(0);
+    });
+
+    it('must keep an empty range empty', () => {
+      const range = Range.open(Integer.of(1), Integer.of(2));
+
+      expect(range.canonical().isEmpty()).toBe(true);
+    });
+
+    it('must throw when the successor of an endpoint is not a safe integer', () => {
+      const range = Range.greaterThan(Integer.of(Number.MAX_SAFE_INTEGER));
+
+      expect(() => range.canonical()).toThrow(
+        new RangeError(
+          `Invalid integer value: ${String(Number.MAX_SAFE_INTEGER + 1)}`
+        )
+      );
     });
   });
 });

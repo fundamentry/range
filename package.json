@@ -69,6 +69,7 @@
     "@fundamentry/eslint-config-json": "catalog:",
     "@fundamentry/eslint-config-prettier": "catalog:",
     "@fundamentry/eslint-config-typescript": "catalog:",
+    "@fundamentry/scalar": "catalog:",
     "@fundamentry/typescript-config": "catalog:",
     "@nx/js": "catalog:",
     "@typescript-eslint/eslint-plugin": "catalog:",
