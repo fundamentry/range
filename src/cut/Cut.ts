@@ -1,110 +1,35 @@
-import { Comparator } from '@fundamentry/order';
-import { Comparable, Discrete, type Stringable } from '@fundamentry/trait';
+import { Comparable, type Stringable } from '@fundamentry/trait';
+
+import { type AboveAll } from './AboveAll.js';
+import { type AboveValue } from './AboveValue.js';
+import { type BelowAll } from './BelowAll.js';
+import { type BelowValue } from './BelowValue.js';
 
 export namespace Cut {
-  export type Variant<T extends Comparable<T> & Stringable> =
-    | { kind: 'BELOW_ALL'; rank: -1 }
-    | { kind: 'ABOVE_ALL'; rank: 1 }
-    | { kind: 'BELOW_VALUE'; rank: 0; value: T }
-    | { kind: 'ABOVE_VALUE'; rank: 0; value: T };
+  export type Lower<T extends Comparable<T> & Stringable> =
+    BelowAll<T> | BelowValue<T> | AboveValue<T>;
+
+  export type Upper<T extends Comparable<T> & Stringable> =
+    AboveAll<T> | BelowValue<T> | AboveValue<T>;
+
+  export type Bounded<T extends Comparable<T> & Stringable> =
+    BelowValue<T> | AboveValue<T>;
 }
 
-export class Cut<T extends Comparable<T> & Stringable> implements Comparable<
-  Cut<T>
-> {
-  #variant: Cut.Variant<T>;
+export abstract class Cut<T extends Comparable<T> & Stringable>
+  implements Comparable<Cut<T>>, Stringable
+{
+  abstract isBelow(value: T): boolean;
 
-  private constructor(variant: Cut.Variant<T>) {
-    this.#variant = variant;
-  }
+  abstract compareTo(other: Cut<T>): number;
 
-  static belowAll<T extends Comparable<T> & Stringable>(): Cut<T> {
-    return new Cut({ kind: 'BELOW_ALL', rank: -1 });
-  }
-
-  static aboveAll<T extends Comparable<T> & Stringable>(): Cut<T> {
-    return new Cut({ kind: 'ABOVE_ALL', rank: 1 });
-  }
-
-  static belowValue<T extends Comparable<T> & Stringable>(value: T): Cut<T> {
-    return new Cut({ kind: 'BELOW_VALUE', rank: 0, value });
-  }
-
-  static aboveValue<T extends Comparable<T> & Stringable>(value: T): Cut<T> {
-    return new Cut({ kind: 'ABOVE_VALUE', rank: 0, value });
-  }
-
-  describeAsLowerBound(): string {
-    const variant = this.#variant;
-
-    if (variant.kind === 'BELOW_ALL') return '(-∞';
-    if (variant.kind === 'ABOVE_ALL') return '(+∞';
-    if (variant.kind === 'BELOW_VALUE')
-      return `[${variant.value[Symbol.toPrimitive]('string')}`;
-
-    return `(${variant.value[Symbol.toPrimitive]('string')}`;
-  }
-
-  describeAsUpperBound(): string {
-    const variant = this.#variant;
-
-    if (variant.kind === 'ABOVE_ALL') return '+∞)';
-
-    if (variant.kind === 'BELOW_ALL') return '-∞)';
-
-    if (variant.kind === 'ABOVE_VALUE')
-      return `${variant.value[Symbol.toPrimitive]('string')}]`;
-
-    return `${variant.value[Symbol.toPrimitive]('string')})`;
-  }
-
-  isBelowValue(): boolean {
-    return this.#variant.kind === 'BELOW_VALUE';
-  }
-
-  isAboveValue(): boolean {
-    return this.#variant.kind === 'ABOVE_VALUE';
-  }
-
-  endpoint(): T | undefined {
-    const variant = this.#variant;
-
-    return variant.kind === 'BELOW_VALUE' || variant.kind === 'ABOVE_VALUE'
-      ? variant.value
-      : undefined;
-  }
-
-  isLessThan(value: T): boolean {
-    const variant = this.#variant;
-
-    if (variant.kind === 'BELOW_ALL') return true;
-
-    if (variant.kind === 'ABOVE_ALL') return false;
-
-    if (variant.kind === 'BELOW_VALUE')
-      return variant.value[Comparable.symbol](value) <= 0;
-
-    return variant.value[Comparable.symbol](value) < 0;
-  }
-
-  canonical<D extends Comparable<D> & Stringable>(
-    this: Cut<D & Discrete<D>>
-  ): Cut<D> {
-    const variant = this.#variant;
-
-    return variant.kind === 'ABOVE_VALUE'
-      ? Cut.belowValue(variant.value[Discrete.successor]())
-      : this;
-  }
-
-  compareTo(other: Cut<T>): number {
-    return Comparator.comparingNumber<Cut<T>>(cut => cut.#variant.rank)
-      .thenComparingByOptionalWith(cut => cut.endpoint())
-      .thenComparingByBoolean(cut => cut.isAboveValue())
-      .compare(this, other);
-  }
+  abstract toString(): string;
 
   [Comparable.symbol](other: Cut<T>): number {
     return this.compareTo(other);
+  }
+
+  [Symbol.toPrimitive](): string {
+    return this.toString();
   }
 }

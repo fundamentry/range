@@ -1,7 +1,14 @@
 import { Comparator } from '@fundamentry/order';
-import { Comparable, type Discrete, type Stringable } from '@fundamentry/trait';
+import { Comparable, Discrete, type Stringable } from '@fundamentry/trait';
 
-import { Cut } from '#project/cut';
+import {
+  AboveAll,
+  AboveValue,
+  BelowAll,
+  BelowValue,
+  type Cut,
+  ValueCut,
+} from '#project/cut';
 
 export namespace Range {
   export namespace Bound {
@@ -12,19 +19,15 @@ export namespace Range {
 export class Range<T extends Comparable<T> & Stringable>
   implements Comparable<Range<T>>, Stringable
 {
-  #lower: Cut<T>;
+  #lower: Cut.Lower<T>;
 
-  #upper: Cut<T>;
+  #upper: Cut.Upper<T>;
 
-  private constructor(lower: Cut<T>, upper: Cut<T>) {
+  private constructor(lower: Cut.Lower<T>, upper: Cut.Upper<T>) {
     this.#lower = lower;
     this.#upper = upper;
 
-    if (
-      this.#lower.compareTo(this.#upper) > 0 ||
-      this.#lower.compareTo(Cut.aboveAll()) === 0 ||
-      this.#upper.compareTo(Cut.belowAll()) === 0
-    )
+    if (this.#lower.compareTo(this.#upper) > 0)
       throw new RangeError(`Invalid range: ${this.toString()}`);
   }
 
@@ -32,56 +35,59 @@ export class Range<T extends Comparable<T> & Stringable>
     lower: T,
     upper: T
   ): Range<T> {
-    return new Range(Cut.aboveValue(lower), Cut.belowValue(upper));
+    return new Range(new AboveValue(lower), new BelowValue(upper));
   }
 
   static closed<T extends Comparable<T> & Stringable>(
     lower: T,
     upper: T
   ): Range<T> {
-    return new Range(Cut.belowValue(lower), Cut.aboveValue(upper));
+    return new Range(new BelowValue(lower), new AboveValue(upper));
   }
 
   static closedOpen<T extends Comparable<T> & Stringable>(
     lower: T,
     upper: T
   ): Range<T> {
-    return new Range(Cut.belowValue(lower), Cut.belowValue(upper));
+    return new Range(new BelowValue(lower), new BelowValue(upper));
   }
 
   static openClosed<T extends Comparable<T> & Stringable>(
     lower: T,
     upper: T
   ): Range<T> {
-    return new Range(Cut.aboveValue(lower), Cut.aboveValue(upper));
+    return new Range(new AboveValue(lower), new AboveValue(upper));
   }
 
   static greaterThan<T extends Comparable<T> & Stringable>(lower: T): Range<T> {
-    return new Range(Cut.aboveValue(lower), Cut.aboveAll());
+    return new Range(new AboveValue(lower), new AboveAll<T>());
   }
 
   static atLeast<T extends Comparable<T> & Stringable>(lower: T): Range<T> {
-    return new Range(Cut.belowValue(lower), Cut.aboveAll());
+    return new Range(new BelowValue(lower), new AboveAll<T>());
   }
 
   static lessThan<T extends Comparable<T> & Stringable>(upper: T): Range<T> {
-    return new Range(Cut.belowAll(), Cut.belowValue(upper));
+    return new Range(new BelowAll<T>(), new BelowValue(upper));
   }
 
   static atMost<T extends Comparable<T> & Stringable>(upper: T): Range<T> {
-    return new Range(Cut.belowAll(), Cut.aboveValue(upper));
+    return new Range(new BelowAll<T>(), new AboveValue(upper));
   }
 
   static all<T extends Comparable<T> & Stringable>(): Range<T> {
-    return new Range(Cut.belowAll(), Cut.aboveAll());
+    return new Range(new BelowAll<T>(), new AboveAll<T>());
   }
 
   static singleton<T extends Comparable<T> & Stringable>(value: T): Range<T> {
-    return new Range(Cut.belowValue(value), Cut.aboveValue(value));
+    return new Range(new BelowValue(value), new AboveValue(value));
   }
 
   toString(): string {
-    return `${this.#lower.describeAsLowerBound()}..${this.#upper.describeAsUpperBound()}`;
+    const opening = this.lowerBoundType() === 'CLOSED' ? '[' : '(';
+    const closing = this.upperBoundType() === 'CLOSED' ? ']' : ')';
+
+    return `${opening}${String(this.#lower)}..${String(this.#upper)}${closing}`;
   }
 
   compareTo(other: Range<T>): number {
@@ -107,23 +113,31 @@ export class Range<T extends Comparable<T> & Stringable>
   }
 
   lowerEndpoint(): T | undefined {
-    return this.#lower.endpoint();
+    const lower = this.#lower;
+
+    return lower instanceof ValueCut ? lower.value() : undefined;
   }
 
   upperEndpoint(): T | undefined {
-    return this.#upper.endpoint();
+    const upper = this.#upper;
+
+    return upper instanceof ValueCut ? upper.value() : undefined;
   }
 
   lowerBoundType(): Range.Bound.Type {
-    if (!this.hasLowerBound()) return 'UNBOUNDED';
+    const lower = this.#lower;
 
-    return this.#lower.isBelowValue() ? 'CLOSED' : 'OPEN';
+    if (!(lower instanceof ValueCut)) return 'UNBOUNDED';
+
+    return lower.isBelow(lower.value()) ? 'CLOSED' : 'OPEN';
   }
 
   upperBoundType(): Range.Bound.Type {
-    if (!this.hasUpperBound()) return 'UNBOUNDED';
+    const upper = this.#upper;
 
-    return this.#upper.isAboveValue() ? 'CLOSED' : 'OPEN';
+    if (!(upper instanceof ValueCut)) return 'UNBOUNDED';
+
+    return upper.isBelow(upper.value()) ? 'OPEN' : 'CLOSED';
   }
 
   isEmpty(): boolean {
@@ -131,7 +145,7 @@ export class Range<T extends Comparable<T> & Stringable>
   }
 
   contains(value: T): boolean {
-    return this.#lower.isLessThan(value) && !this.#upper.isLessThan(value);
+    return this.#lower.isBelow(value) && !this.#upper.isBelow(value);
   }
 
   containsAll(values: Iterable<T>): boolean {
@@ -177,6 +191,11 @@ export class Range<T extends Comparable<T> & Stringable>
   canonical<D extends Comparable<D> & Stringable>(
     this: Range<D & Discrete<D>>
   ): Range<D> {
-    return new Range(this.#lower.canonical(), this.#upper.canonical());
+    const canonicalise = <C extends Cut<D & Discrete<D>>>(cut: C) =>
+      cut instanceof ValueCut && !cut.isBelow(cut.value())
+        ? new BelowValue(cut.value()[Discrete.successor]())
+        : cut;
+
+    return new Range(canonicalise(this.#lower), canonicalise(this.#upper));
   }
 }
