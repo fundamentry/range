@@ -7,6 +7,7 @@ import {
   BelowAll,
   BelowValue,
   type Cut,
+  ValueCut,
 } from '#project/cut';
 
 export namespace Range {
@@ -255,6 +256,25 @@ export class Range<
       this.#upper.compareTo(other.#upper) >= 0 ? this.#upper : other.#upper;
 
     return new Range(lower, upper);
+  }
+
+  clamp(domain: Range.Bounded<T>): Range.Bounded<T>;
+
+  clamp(domain: Range<T>): Range<T>;
+
+  clamp(domain: Range<T>): Range<T> {
+    const max = <C extends Cut<T>>(a: C, b: C) => (a.compareTo(b) >= 0 ? a : b);
+    const min = <C extends Cut<T>>(a: C, b: C) => (a.compareTo(b) <= 0 ? a : b);
+
+    const cappedAt = (cut: Cut.Lower<T>, bound: Cut.Upper<T>) =>
+      bound instanceof ValueCut && cut.compareTo(bound) > 0 ? bound : cut;
+    const flooredAt = (cut: Cut.Upper<T>, bound: Cut.Lower<T>) =>
+      bound instanceof ValueCut && cut.compareTo(bound) < 0 ? bound : cut;
+
+    return new Range(
+      cappedAt(max(this.#lower, domain.#lower), domain.#upper),
+      flooredAt(min(this.#upper, domain.#upper), domain.#lower)
+    );
   }
 
   canonical<D extends Comparable<D> & Stringable>(

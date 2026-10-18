@@ -844,6 +844,91 @@ describe('Range', () => {
     });
   });
 
+  describe('clamp', () => {
+    it.each([
+      [Range.closedOpen(Integer.of(1), Integer.of(3)), '[1..3)'],
+      [Range.closedOpen(Integer.of(2), Integer.of(8)), '[2..4)'],
+      [Range.closedOpen(Integer.of(-1), Integer.of(1)), '[0..1)'],
+      [Range.closedOpen(Integer.of(6), Integer.of(8)), '[4..4)'],
+      [Range.closedOpen(Integer.of(-3), Integer.of(-1)), '[0..0)'],
+      [Range.lessThan(Integer.of(2)), '[0..2)'],
+      [Range.atLeast(Integer.of(2)), '[2..4)'],
+      [Range.all<Integer>(), '[0..4)'],
+      [Range.closedOpen(Integer.of(4), Integer.of(4)), '[4..4)'],
+    ])('must clamp %s to [0..4) as %s', (range, expected) => {
+      const domain = Range.closedOpen(Integer.of(0), Integer.of(4));
+
+      expect(range.clamp(domain).toString()).toBe(expected);
+    });
+
+    it.each([
+      [Range.closedOpen(Integer.of(5), Integer.of(8)), '[5..8)'],
+      [Range.closedOpen(Integer.of(-3), Integer.of(-1)), '[0..0)'],
+      [Range.lessThan(Integer.of(2)), '[0..2)'],
+      [Range.all<Integer>(), '[0..+∞)'],
+    ])('must clamp %s to [0..+∞) as %s', (range, expected) => {
+      const domain = Range.atLeast(Integer.of(0));
+
+      expect(range.clamp(domain).toString()).toBe(expected);
+    });
+
+    it.each([
+      [Range.closedOpen(Integer.of(6), Integer.of(8)), '[4..4)'],
+      [Range.closedOpen(Integer.of(-3), Integer.of(-1)), '[-3..-1)'],
+      [Range.atLeast(Integer.of(2)), '[2..4)'],
+      [Range.all<Integer>(), '(-∞..4)'],
+    ])('must clamp %s to (-∞..4) as %s', (range, expected) => {
+      const domain = Range.lessThan(Integer.of(4));
+
+      expect(range.clamp(domain).toString()).toBe(expected);
+    });
+
+    it.each([
+      [Range.closedOpen(Integer.of(0), Integer.of(1)), '[2..2)'],
+      [Range.closedOpen(Integer.of(5), Integer.of(6)), '[2..2)'],
+      [Range.closedOpen(Integer.of(1), Integer.of(3)), '[2..2)'],
+      [Range.all<Integer>(), '[2..2)'],
+    ])('must clamp %s to the empty domain [2..2) as %s', (range, expected) => {
+      const domain = Range.closedOpen(Integer.of(2), Integer.of(2));
+
+      expect(range.clamp(domain).toString()).toBe(expected);
+    });
+
+    it.each([
+      [Range.closed(new TestComparable(1), new TestComparable(3)), '[1..3]'],
+      [Range.closed(new TestComparable(2), new TestComparable(8)), '[2..4)'],
+      [Range.closed(new TestComparable(-1), new TestComparable(1)), '(0..1]'],
+      [Range.closed(new TestComparable(6), new TestComparable(8)), '[4..4)'],
+      [Range.closed(new TestComparable(-3), new TestComparable(-1)), '(0..0]'],
+      [Range.closed(new TestComparable(4), new TestComparable(5)), '[4..4)'],
+      [Range.all<TestComparable>(), '(0..4)'],
+    ])(
+      'must clamp %s to (0..4) as %s, keeping bounds as given',
+      (range, expected) => {
+        const domain = Range.open(new TestComparable(0), new TestComparable(4));
+
+        expect(range.clamp(domain).toString()).toBe(expected);
+      }
+    );
+
+    it('must type a range clamped to a bounded domain as bounded', () => {
+      const clamped = Range.all<Integer>().clamp(
+        Range.closedOpen(Integer.of(0), Integer.of(4))
+      );
+
+      expectTypeOf(clamped).toEqualTypeOf<Range.Bounded<Integer>>();
+      expectTypeOf(clamped.lower().value()).toEqualTypeOf<Integer>();
+      expect(clamped.lower().value().value()).toBe(0);
+      expect(clamped.upper().value().value()).toBe(4);
+    });
+
+    it('must type a range clamped to an unbounded domain as any range', () => {
+      const clamped = Range.all<Integer>().clamp(Range.atLeast(Integer.of(0)));
+
+      expectTypeOf(clamped).toEqualTypeOf<Range<Integer>>();
+    });
+  });
+
   describe('canonical', () => {
     const semantics: [Range<Integer>, string][] = [
       [Range.closed(Integer.of(1), Integer.of(2)), '[1..3)'],
