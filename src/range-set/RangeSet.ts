@@ -31,7 +31,7 @@ export class RangeSet<
   }
 
   toString(): string {
-    return `{${this.#ranges.map(range => range.toString()).join(', ')}}`;
+    return `{${this.#ranges.map(String).join(', ')}}`;
   }
 
   [Symbol.toPrimitive](): string {
