@@ -1,3 +1,14 @@
+# 3.0.0
+
+### 🚀 Features
+
+- ⚠️  expose the cuts of 'Range' ([77c0593](https://github.com/fundamentry/range/commit/77c0593))
+- clamp a range to a domain ([4e73a2b](https://github.com/fundamentry/range/commit/4e73a2b))
+
+### ⚠️  Breaking Changes
+
+- expose the cuts of 'Range'  ([77c0593](https://github.com/fundamentry/range/commit/77c0593))
+
 ## 2.1.0
 
 ### 🚀 Features
