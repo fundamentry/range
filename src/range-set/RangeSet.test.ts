@@ -138,16 +138,37 @@ describe('RangeSet', () => {
     });
   });
 
+  describe('of', () => {
+    it('must merge the given ranges like from', () => {
+      const rangeSet = RangeSet.of(
+        Range.closed(new TestComparable(10), new TestComparable(12)),
+        Range.closed(new TestComparable(0), new TestComparable(5)),
+        Range.closed(new TestComparable(3), new TestComparable(9))
+      );
+
+      expect(rangeSet.asRanges().map(range => range.toString())).toEqual([
+        '[0..9]',
+        '[10..12]',
+      ]);
+    });
+  });
+
+  describe('empty', () => {
+    it('must produce a range set without ranges', () => {
+      expect(RangeSet.empty<TestComparable>().asRanges()).toEqual([]);
+    });
+  });
+
   describe('toString', () => {
     it('must format an empty range set', () => {
-      expect(RangeSet.from<TestComparable>([]).toString()).toBe('{}');
+      expect(RangeSet.empty<TestComparable>().toString()).toBe('{}');
     });
 
     it('must format a range set with its coalesced ranges in interval notation', () => {
-      const rangeSet = RangeSet.from([
+      const rangeSet = RangeSet.of(
         Range.closed(new TestComparable(1), new TestComparable(3)),
-        Range.closed(new TestComparable(10), new TestComparable(12)),
-      ]);
+        Range.closed(new TestComparable(10), new TestComparable(12))
+      );
 
       expect(rangeSet.toString()).toBe('{[1..3], [10..12]}');
     });
@@ -155,20 +176,20 @@ describe('RangeSet', () => {
 
   describe('[Symbol.toPrimitive]', () => {
     it('must format a range set in interval notation when coerced to a string', () => {
-      const rangeSet = RangeSet.from([
+      const rangeSet = RangeSet.of(
         Range.closed(new TestComparable(1), new TestComparable(3)),
-        Range.closed(new TestComparable(10), new TestComparable(12)),
-      ]);
+        Range.closed(new TestComparable(10), new TestComparable(12))
+      );
 
       expect(String(rangeSet)).toBe('{[1..3], [10..12]}');
     });
   });
 
   describe('contains', () => {
-    const rangeSet = RangeSet.from([
+    const rangeSet = RangeSet.of(
       Range.closed(new TestComparable(1), new TestComparable(3)),
-      Range.closed(new TestComparable(10), new TestComparable(12)),
-    ]);
+      Range.closed(new TestComparable(10), new TestComparable(12))
+    );
 
     it.each([
       [1, true],
@@ -188,16 +209,16 @@ describe('RangeSet', () => {
 
     it('must return false for every value in an empty range set', () => {
       expect(
-        RangeSet.from<TestComparable>([]).contains(new TestComparable(0))
+        RangeSet.empty<TestComparable>().contains(new TestComparable(0))
       ).toBe(false);
     });
   });
 
   describe('encloses', () => {
-    const rangeSet = RangeSet.from([
+    const rangeSet = RangeSet.of(
       Range.closed(new TestComparable(1), new TestComparable(3)),
-      Range.closed(new TestComparable(10), new TestComparable(12)),
-    ]);
+      Range.closed(new TestComparable(10), new TestComparable(12))
+    );
 
     it('must return true when a single member range encloses the given range', () => {
       expect(
@@ -217,7 +238,7 @@ describe('RangeSet', () => {
 
     it('must return false when no member range encloses the given range', () => {
       expect(
-        RangeSet.from<TestComparable>([]).encloses(
+        RangeSet.empty<TestComparable>().encloses(
           Range.closed(new TestComparable(1), new TestComparable(2))
         )
       ).toBe(false);
@@ -226,10 +247,10 @@ describe('RangeSet', () => {
 
   describe('asRanges', () => {
     it('must return the coalesced ranges in ascending order', () => {
-      const rangeSet = RangeSet.from([
+      const rangeSet = RangeSet.of(
         Range.closed(new TestComparable(10), new TestComparable(12)),
-        Range.closed(new TestComparable(1), new TestComparable(3)),
-      ]);
+        Range.closed(new TestComparable(1), new TestComparable(3))
+      );
 
       expect(rangeSet.asRanges().map(range => range.toString())).toEqual([
         '[1..3]',
@@ -241,47 +262,47 @@ describe('RangeSet', () => {
   describe('isEmpty', () => {
     it('must return false for a range set with members', () => {
       expect(
-        RangeSet.from([
-          Range.closed(new TestComparable(1), new TestComparable(3)),
-        ]).isEmpty()
+        RangeSet.of(
+          Range.closed(new TestComparable(1), new TestComparable(3))
+        ).isEmpty()
       ).toBe(false);
     });
 
     it('must return true for a range set with no members', () => {
-      expect(RangeSet.from<TestComparable>([]).isEmpty()).toBe(true);
+      expect(RangeSet.empty<TestComparable>().isEmpty()).toBe(true);
     });
   });
 
   describe('span', () => {
     it('must return the minimal range enclosing every member range', () => {
-      const rangeSet = RangeSet.from([
+      const rangeSet = RangeSet.of(
         Range.closed(new TestComparable(1), new TestComparable(3)),
-        Range.closed(new TestComparable(10), new TestComparable(12)),
-      ]);
+        Range.closed(new TestComparable(10), new TestComparable(12))
+      );
 
       expect(rangeSet.span().toString()).toBe('[1..12]');
     });
 
     it('must return the sole range for a range set with a single member', () => {
-      const rangeSet = RangeSet.from([
-        Range.closed(new TestComparable(1), new TestComparable(3)),
-      ]);
+      const rangeSet = RangeSet.of(
+        Range.closed(new TestComparable(1), new TestComparable(3))
+      );
 
       expect(rangeSet.span().toString()).toBe('[1..3]');
     });
 
     it('must span from the first to the last member for more than two members', () => {
-      const rangeSet = RangeSet.from([
+      const rangeSet = RangeSet.of(
         Range.closed(new TestComparable(20), new TestComparable(25)),
         Range.closed(new TestComparable(1), new TestComparable(3)),
-        Range.closed(new TestComparable(10), new TestComparable(12)),
-      ]);
+        Range.closed(new TestComparable(10), new TestComparable(12))
+      );
 
       expect(rangeSet.span().toString()).toBe('[1..25]');
     });
 
     it('must throw for an empty range set', () => {
-      expect(() => RangeSet.from<TestComparable>([]).span()).toThrow(
+      expect(() => RangeSet.empty<TestComparable>().span()).toThrow(
         new RangeError('Cannot compute span of an empty range set.')
       );
     });

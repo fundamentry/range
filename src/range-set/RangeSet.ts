@@ -30,6 +30,16 @@ export class RangeSet<
     return new RangeSet(merged);
   }
 
+  static of<T extends Comparable<T> & Stringable>(
+    ...ranges: Range<T>[]
+  ): RangeSet<T> {
+    return RangeSet.from(ranges);
+  }
+
+  static empty<T extends Comparable<T> & Stringable>(): RangeSet<T> {
+    return new RangeSet([]);
+  }
+
   toString(): string {
     return `{${this.#ranges.map(String).join(', ')}}`;
   }
