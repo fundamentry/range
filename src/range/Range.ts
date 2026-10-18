@@ -239,14 +239,7 @@ export class Range<
   }
 
   intersection(other: Range<T>): Range<T> | undefined {
-    if (!this.isConnected(other)) return undefined;
-
-    const lower =
-      this.#lower.compareTo(other.#lower) >= 0 ? this.#lower : other.#lower;
-    const upper =
-      this.#upper.compareTo(other.#upper) <= 0 ? this.#upper : other.#upper;
-
-    return new Range(lower, upper);
+    return this.isConnected(other) ? this.clamp(other) : undefined;
   }
 
   span(other: Range<T>): Range<T> {
