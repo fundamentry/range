@@ -1,3 +1,9 @@
+## 3.2.0
+
+### 🚀 Features
+
+- tell whether a range lies before another ([4c9c41c](https://github.com/fundamentry/range/commit/4c9c41c))
+
 ## 3.1.0
 
 ### 🚀 Features
