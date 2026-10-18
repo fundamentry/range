@@ -7,23 +7,86 @@ import {
   BelowAll,
   BelowValue,
   type Cut,
-  ValueCut,
 } from '#project/cut';
 
 export namespace Range {
   export namespace Bound {
     export type Type = 'CLOSED' | 'OPEN' | 'UNBOUNDED';
   }
+
+  export type Open<T extends Comparable<T> & Stringable> = Range<
+    T,
+    AboveValue<T>,
+    BelowValue<T>
+  >;
+
+  export type Closed<T extends Comparable<T> & Stringable> = Range<
+    T,
+    BelowValue<T>,
+    AboveValue<T>
+  >;
+
+  export type ClosedOpen<T extends Comparable<T> & Stringable> = Range<
+    T,
+    BelowValue<T>,
+    BelowValue<T>
+  >;
+
+  export type OpenClosed<T extends Comparable<T> & Stringable> = Range<
+    T,
+    AboveValue<T>,
+    AboveValue<T>
+  >;
+
+  export type GreaterThan<T extends Comparable<T> & Stringable> = Range<
+    T,
+    AboveValue<T>,
+    AboveAll<T>
+  >;
+
+  export type AtLeast<T extends Comparable<T> & Stringable> = Range<
+    T,
+    BelowValue<T>,
+    AboveAll<T>
+  >;
+
+  export type LessThan<T extends Comparable<T> & Stringable> = Range<
+    T,
+    BelowAll<T>,
+    BelowValue<T>
+  >;
+
+  export type AtMost<T extends Comparable<T> & Stringable> = Range<
+    T,
+    BelowAll<T>,
+    AboveValue<T>
+  >;
+
+  export type All<T extends Comparable<T> & Stringable> = Range<
+    T,
+    BelowAll<T>,
+    AboveAll<T>
+  >;
+
+  export type Bounded<T extends Comparable<T> & Stringable> = Range<
+    T,
+    Cut.Bounded<T>,
+    Cut.Bounded<T>
+  >;
 }
 
-export class Range<T extends Comparable<T> & Stringable>
+export class Range<
+  T extends Comparable<T> & Stringable,
+  L extends Cut.Lower<T> = Cut.Lower<T>,
+  U extends Cut.Upper<T> = Cut.Upper<T>,
+>
   implements Comparable<Range<T>>, Stringable
 {
-  #lower: Cut.Lower<T>;
+  readonly #lower: L;
 
-  #upper: Cut.Upper<T>;
+  readonly #upper: U;
 
-  private constructor(lower: Cut.Lower<T>, upper: Cut.Upper<T>) {
+  private constructor(lower: L, upper: U) {
     this.#lower = lower;
     this.#upper = upper;
 
@@ -34,53 +97,63 @@ export class Range<T extends Comparable<T> & Stringable>
   static open<T extends Comparable<T> & Stringable>(
     lower: T,
     upper: T
-  ): Range<T> {
+  ): Range.Open<T> {
     return new Range(new AboveValue(lower), new BelowValue(upper));
   }
 
   static closed<T extends Comparable<T> & Stringable>(
     lower: T,
     upper: T
-  ): Range<T> {
+  ): Range.Closed<T> {
     return new Range(new BelowValue(lower), new AboveValue(upper));
   }
 
   static closedOpen<T extends Comparable<T> & Stringable>(
     lower: T,
     upper: T
-  ): Range<T> {
+  ): Range.ClosedOpen<T> {
     return new Range(new BelowValue(lower), new BelowValue(upper));
   }
 
   static openClosed<T extends Comparable<T> & Stringable>(
     lower: T,
     upper: T
-  ): Range<T> {
+  ): Range.OpenClosed<T> {
     return new Range(new AboveValue(lower), new AboveValue(upper));
   }
 
-  static greaterThan<T extends Comparable<T> & Stringable>(lower: T): Range<T> {
+  static greaterThan<T extends Comparable<T> & Stringable>(
+    lower: T
+  ): Range.GreaterThan<T> {
     return new Range(new AboveValue(lower), new AboveAll<T>());
   }
 
-  static atLeast<T extends Comparable<T> & Stringable>(lower: T): Range<T> {
+  static atLeast<T extends Comparable<T> & Stringable>(
+    lower: T
+  ): Range.AtLeast<T> {
     return new Range(new BelowValue(lower), new AboveAll<T>());
   }
 
-  static lessThan<T extends Comparable<T> & Stringable>(upper: T): Range<T> {
+  static lessThan<T extends Comparable<T> & Stringable>(
+    upper: T
+  ): Range.LessThan<T> {
     return new Range(new BelowAll<T>(), new BelowValue(upper));
   }
 
-  static atMost<T extends Comparable<T> & Stringable>(upper: T): Range<T> {
+  static atMost<T extends Comparable<T> & Stringable>(
+    upper: T
+  ): Range.AtMost<T> {
     return new Range(new BelowAll<T>(), new AboveValue(upper));
   }
 
-  static all<T extends Comparable<T> & Stringable>(): Range<T> {
+  static all<T extends Comparable<T> & Stringable>(): Range.All<T> {
     return new Range(new BelowAll<T>(), new AboveAll<T>());
   }
 
-  static singleton<T extends Comparable<T> & Stringable>(value: T): Range<T> {
-    return new Range(new BelowValue(value), new AboveValue(value));
+  static singleton<T extends Comparable<T> & Stringable>(
+    value: T
+  ): Range.Closed<T> {
+    return Range.closed(value, value);
   }
 
   toString(): string {
@@ -104,40 +177,36 @@ export class Range<T extends Comparable<T> & Stringable>
     return this.toString();
   }
 
-  hasLowerBound(): boolean {
-    return this.lowerEndpoint() !== undefined;
+  lower(): L {
+    return this.#lower;
   }
 
-  hasUpperBound(): boolean {
-    return this.upperEndpoint() !== undefined;
+  upper(): U {
+    return this.#upper;
   }
 
-  lowerEndpoint(): T | undefined {
-    const lower = this.#lower;
-
-    return lower instanceof ValueCut ? lower.value() : undefined;
-  }
-
-  upperEndpoint(): T | undefined {
-    const upper = this.#upper;
-
-    return upper instanceof ValueCut ? upper.value() : undefined;
-  }
+  lowerBoundType(): L extends BelowValue<T>
+    ? 'CLOSED'
+    : L extends AboveValue<T>
+      ? 'OPEN'
+      : 'UNBOUNDED';
 
   lowerBoundType(): Range.Bound.Type {
-    const lower = this.#lower;
+    if (this.#lower instanceof BelowValue) return 'CLOSED';
 
-    if (!(lower instanceof ValueCut)) return 'UNBOUNDED';
-
-    return lower.isBelow(lower.value()) ? 'CLOSED' : 'OPEN';
+    return this.#lower instanceof AboveValue ? 'OPEN' : 'UNBOUNDED';
   }
 
+  upperBoundType(): U extends BelowValue<T>
+    ? 'OPEN'
+    : U extends AboveValue<T>
+      ? 'CLOSED'
+      : 'UNBOUNDED';
+
   upperBoundType(): Range.Bound.Type {
-    const upper = this.#upper;
+    if (this.#upper instanceof BelowValue) return 'OPEN';
 
-    if (!(upper instanceof ValueCut)) return 'UNBOUNDED';
-
-    return upper.isBelow(upper.value()) ? 'OPEN' : 'CLOSED';
+    return this.#upper instanceof AboveValue ? 'CLOSED' : 'UNBOUNDED';
   }
 
   isEmpty(): boolean {
@@ -190,9 +259,17 @@ export class Range<T extends Comparable<T> & Stringable>
 
   canonical<D extends Comparable<D> & Stringable>(
     this: Range<D & Discrete<D>>
+  ): Range<
+    D,
+    L extends BelowAll<D & Discrete<D>> ? BelowAll<D> : BelowValue<D>,
+    U extends AboveAll<D & Discrete<D>> ? AboveAll<D> : BelowValue<D>
+  >;
+
+  canonical<D extends Comparable<D> & Stringable>(
+    this: Range<D & Discrete<D>>
   ): Range<D> {
     const canonicalise = <C extends Cut<D & Discrete<D>>>(cut: C) =>
-      cut instanceof ValueCut && !cut.isBelow(cut.value())
+      cut instanceof AboveValue
         ? new BelowValue(cut.value()[Discrete.successor]())
         : cut;
 

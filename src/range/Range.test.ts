@@ -1,7 +1,15 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, expectTypeOf, it } from 'vitest';
 
 import { Integer } from '@fundamentry/scalar';
 import { Comparable, type Stringable } from '@fundamentry/trait';
+
+import {
+  AboveAll,
+  AboveValue,
+  BelowAll,
+  BelowValue,
+  type Cut,
+} from '#project/cut';
 
 import { Range } from './Range.js';
 
@@ -26,7 +34,22 @@ class TestComparable implements Comparable<TestComparable>, Stringable {
 }
 
 describe('Range', () => {
+  it('must accept a range at a value on both sides as Range.Bounded', () => {
+    expectTypeOf(
+      Range.closedOpen(new TestComparable(3), new TestComparable(5))
+    ).toExtend<Range.Bounded<TestComparable>>();
+    expectTypeOf(Range.atLeast(new TestComparable(3))).not.toExtend<
+      Range.Bounded<TestComparable>
+    >();
+  });
+
   describe('open', () => {
+    it('must type the range as Range.Open', () => {
+      expectTypeOf(
+        Range.open(new TestComparable(3), new TestComparable(5))
+      ).toEqualTypeOf<Range.Open<TestComparable>>();
+    });
+
     it('must create a range excluding both endpoints', () => {
       const range = Range.open(new TestComparable(3), new TestComparable(5));
 
@@ -41,6 +64,12 @@ describe('Range', () => {
   });
 
   describe('closed', () => {
+    it('must type the range as Range.Closed', () => {
+      expectTypeOf(
+        Range.closed(new TestComparable(3), new TestComparable(5))
+      ).toEqualTypeOf<Range.Closed<TestComparable>>();
+    });
+
     it('must create a range including both endpoints', () => {
       const range = Range.closed(new TestComparable(3), new TestComparable(5));
 
@@ -55,6 +84,12 @@ describe('Range', () => {
   });
 
   describe('closedOpen', () => {
+    it('must type the range as Range.ClosedOpen', () => {
+      expectTypeOf(
+        Range.closedOpen(new TestComparable(3), new TestComparable(5))
+      ).toEqualTypeOf<Range.ClosedOpen<TestComparable>>();
+    });
+
     it('must create a range including the lower endpoint and excluding the upper endpoint', () => {
       const range = Range.closedOpen(
         new TestComparable(3),
@@ -66,6 +101,12 @@ describe('Range', () => {
   });
 
   describe('openClosed', () => {
+    it('must type the range as Range.OpenClosed', () => {
+      expectTypeOf(
+        Range.openClosed(new TestComparable(3), new TestComparable(5))
+      ).toEqualTypeOf<Range.OpenClosed<TestComparable>>();
+    });
+
     it('must create a range excluding the lower endpoint and including the upper endpoint', () => {
       const range = Range.openClosed(
         new TestComparable(3),
@@ -77,6 +118,12 @@ describe('Range', () => {
   });
 
   describe('greaterThan', () => {
+    it('must type the range as Range.GreaterThan', () => {
+      expectTypeOf(Range.greaterThan(new TestComparable(3))).toEqualTypeOf<
+        Range.GreaterThan<TestComparable>
+      >();
+    });
+
     it('must create a range unbounded above, excluding the lower endpoint', () => {
       const range = Range.greaterThan(new TestComparable(3));
 
@@ -85,6 +132,12 @@ describe('Range', () => {
   });
 
   describe('atLeast', () => {
+    it('must type the range as Range.AtLeast', () => {
+      expectTypeOf(Range.atLeast(new TestComparable(3))).toEqualTypeOf<
+        Range.AtLeast<TestComparable>
+      >();
+    });
+
     it('must create a range unbounded above, including the lower endpoint', () => {
       const range = Range.atLeast(new TestComparable(3));
 
@@ -93,6 +146,12 @@ describe('Range', () => {
   });
 
   describe('lessThan', () => {
+    it('must type the range as Range.LessThan', () => {
+      expectTypeOf(Range.lessThan(new TestComparable(5))).toEqualTypeOf<
+        Range.LessThan<TestComparable>
+      >();
+    });
+
     it('must create a range unbounded below, excluding the upper endpoint', () => {
       const range = Range.lessThan(new TestComparable(5));
 
@@ -101,6 +160,12 @@ describe('Range', () => {
   });
 
   describe('atMost', () => {
+    it('must type the range as Range.AtMost', () => {
+      expectTypeOf(Range.atMost(new TestComparable(5))).toEqualTypeOf<
+        Range.AtMost<TestComparable>
+      >();
+    });
+
     it('must create a range unbounded below, including the upper endpoint', () => {
       const range = Range.atMost(new TestComparable(5));
 
@@ -109,6 +174,12 @@ describe('Range', () => {
   });
 
   describe('all', () => {
+    it('must type the range as Range.All', () => {
+      expectTypeOf(Range.all<TestComparable>()).toEqualTypeOf<
+        Range.All<TestComparable>
+      >();
+    });
+
     it('must create a range unbounded on both sides', () => {
       const range = Range.all<TestComparable>();
 
@@ -117,6 +188,12 @@ describe('Range', () => {
   });
 
   describe('singleton', () => {
+    it('must type the range as Range.Closed', () => {
+      expectTypeOf(Range.singleton(new TestComparable(3))).toEqualTypeOf<
+        Range.Closed<TestComparable>
+      >();
+    });
+
     it('must create a closed range with equal endpoints', () => {
       const range = Range.singleton(new TestComparable(3));
 
@@ -202,91 +279,241 @@ describe('Range', () => {
     });
   });
 
-  describe('hasLowerBound', () => {
-    it('must return true when the range has a lower bound', () => {
-      expect(Range.atLeast(new TestComparable(3)).hasLowerBound()).toBe(true);
+  describe('lower', () => {
+    const three = new TestComparable(3);
+    const five = new TestComparable(5);
+
+    it.each<
+      [
+        string,
+        Cut.Lower<TestComparable>,
+        typeof BelowAll | typeof BelowValue | typeof AboveValue,
+      ]
+    >([
+      ['open', Range.open(three, five).lower(), AboveValue],
+      ['closed', Range.closed(three, five).lower(), BelowValue],
+      ['closedOpen', Range.closedOpen(three, five).lower(), BelowValue],
+      ['openClosed', Range.openClosed(three, five).lower(), AboveValue],
+      ['greaterThan', Range.greaterThan(three).lower(), AboveValue],
+      ['atLeast', Range.atLeast(three).lower(), BelowValue],
+      ['lessThan', Range.lessThan(five).lower(), BelowAll],
+      ['atMost', Range.atMost(five).lower(), BelowAll],
+      ['all', Range.all<TestComparable>().lower(), BelowAll],
+      ['singleton', Range.singleton(three).lower(), BelowValue],
+    ])('must return the lower cut of a range built by %s', (_, cut, kind) => {
+      expect(cut).toBeInstanceOf(kind);
     });
 
-    it('must return false when the range has no lower bound', () => {
-      expect(Range.atMost(new TestComparable(3)).hasLowerBound()).toBe(false);
+    it('must return the cut the range was built from', () => {
+      expect(Range.closed(three, five).lower().value()).toBe(three);
+    });
+
+    it('must type the lower cut by the factory that built the range', () => {
+      expectTypeOf(Range.open(three, five).lower()).toEqualTypeOf<
+        AboveValue<TestComparable>
+      >();
+      expectTypeOf(Range.closed(three, five).lower()).toEqualTypeOf<
+        BelowValue<TestComparable>
+      >();
+      expectTypeOf(Range.closedOpen(three, five).lower()).toEqualTypeOf<
+        BelowValue<TestComparable>
+      >();
+      expectTypeOf(Range.openClosed(three, five).lower()).toEqualTypeOf<
+        AboveValue<TestComparable>
+      >();
+      expectTypeOf(Range.greaterThan(three).lower()).toEqualTypeOf<
+        AboveValue<TestComparable>
+      >();
+      expectTypeOf(Range.atLeast(three).lower()).toEqualTypeOf<
+        BelowValue<TestComparable>
+      >();
+      expectTypeOf(Range.lessThan(five).lower()).toEqualTypeOf<
+        BelowAll<TestComparable>
+      >();
+      expectTypeOf(Range.atMost(five).lower()).toEqualTypeOf<
+        BelowAll<TestComparable>
+      >();
+      expectTypeOf(Range.all<TestComparable>().lower()).toEqualTypeOf<
+        BelowAll<TestComparable>
+      >();
+      expectTypeOf(Range.singleton(three).lower()).toEqualTypeOf<
+        BelowValue<TestComparable>
+      >();
     });
   });
 
-  describe('hasUpperBound', () => {
-    it('must return true when the range has an upper bound', () => {
-      expect(Range.atMost(new TestComparable(3)).hasUpperBound()).toBe(true);
+  describe('upper', () => {
+    const three = new TestComparable(3);
+    const five = new TestComparable(5);
+
+    it.each<
+      [
+        string,
+        Cut.Upper<TestComparable>,
+        typeof AboveAll | typeof BelowValue | typeof AboveValue,
+      ]
+    >([
+      ['open', Range.open(three, five).upper(), BelowValue],
+      ['closed', Range.closed(three, five).upper(), AboveValue],
+      ['closedOpen', Range.closedOpen(three, five).upper(), BelowValue],
+      ['openClosed', Range.openClosed(three, five).upper(), AboveValue],
+      ['greaterThan', Range.greaterThan(three).upper(), AboveAll],
+      ['atLeast', Range.atLeast(three).upper(), AboveAll],
+      ['lessThan', Range.lessThan(five).upper(), BelowValue],
+      ['atMost', Range.atMost(five).upper(), AboveValue],
+      ['all', Range.all<TestComparable>().upper(), AboveAll],
+      ['singleton', Range.singleton(five).upper(), AboveValue],
+    ])('must return the upper cut of a range built by %s', (_, cut, kind) => {
+      expect(cut).toBeInstanceOf(kind);
     });
 
-    it('must return false when the range has no upper bound', () => {
-      expect(Range.atLeast(new TestComparable(3)).hasUpperBound()).toBe(false);
-    });
-  });
-
-  describe('lowerEndpoint', () => {
-    it('must return the lower endpoint when the range is bounded below', () => {
-      const value = new TestComparable(3);
-
-      expect(Range.atLeast(value).lowerEndpoint()).toBe(value);
+    it('must return the cut the range was built from', () => {
+      expect(Range.closed(three, five).upper().value()).toBe(five);
     });
 
-    it('must return undefined when the range is unbounded below', () => {
-      expect(
-        Range.atMost(new TestComparable(3)).lowerEndpoint()
-      ).toBeUndefined();
-    });
-  });
-
-  describe('upperEndpoint', () => {
-    it('must return the upper endpoint when the range is bounded above', () => {
-      const value = new TestComparable(5);
-
-      expect(Range.atMost(value).upperEndpoint()).toBe(value);
-    });
-
-    it('must return undefined when the range is unbounded above', () => {
-      expect(
-        Range.atLeast(new TestComparable(3)).upperEndpoint()
-      ).toBeUndefined();
+    it('must type the upper cut by the factory that built the range', () => {
+      expectTypeOf(Range.open(three, five).upper()).toEqualTypeOf<
+        BelowValue<TestComparable>
+      >();
+      expectTypeOf(Range.closed(three, five).upper()).toEqualTypeOf<
+        AboveValue<TestComparable>
+      >();
+      expectTypeOf(Range.closedOpen(three, five).upper()).toEqualTypeOf<
+        BelowValue<TestComparable>
+      >();
+      expectTypeOf(Range.openClosed(three, five).upper()).toEqualTypeOf<
+        AboveValue<TestComparable>
+      >();
+      expectTypeOf(Range.greaterThan(three).upper()).toEqualTypeOf<
+        AboveAll<TestComparable>
+      >();
+      expectTypeOf(Range.atLeast(three).upper()).toEqualTypeOf<
+        AboveAll<TestComparable>
+      >();
+      expectTypeOf(Range.lessThan(five).upper()).toEqualTypeOf<
+        BelowValue<TestComparable>
+      >();
+      expectTypeOf(Range.atMost(five).upper()).toEqualTypeOf<
+        AboveValue<TestComparable>
+      >();
+      expectTypeOf(Range.all<TestComparable>().upper()).toEqualTypeOf<
+        AboveAll<TestComparable>
+      >();
+      expectTypeOf(Range.singleton(five).upper()).toEqualTypeOf<
+        AboveValue<TestComparable>
+      >();
     });
   });
 
   describe('lowerBoundType', () => {
-    it('must return CLOSED for a closed lower bound', () => {
-      const range = Range.closed(new TestComparable(3), new TestComparable(5));
+    const three = new TestComparable(3);
+    const five = new TestComparable(5);
 
-      expect(range.lowerBoundType()).toBe('CLOSED');
-    });
+    it.each([
+      ['open', Range.open(three, five).lowerBoundType(), 'OPEN'],
+      ['closed', Range.closed(three, five).lowerBoundType(), 'CLOSED'],
+      ['closedOpen', Range.closedOpen(three, five).lowerBoundType(), 'CLOSED'],
+      ['openClosed', Range.openClosed(three, five).lowerBoundType(), 'OPEN'],
+      ['greaterThan', Range.greaterThan(three).lowerBoundType(), 'OPEN'],
+      ['atLeast', Range.atLeast(three).lowerBoundType(), 'CLOSED'],
+      ['lessThan', Range.lessThan(five).lowerBoundType(), 'UNBOUNDED'],
+      ['atMost', Range.atMost(five).lowerBoundType(), 'UNBOUNDED'],
+      ['all', Range.all<TestComparable>().lowerBoundType(), 'UNBOUNDED'],
+      ['singleton', Range.singleton(three).lowerBoundType(), 'CLOSED'],
+    ])(
+      'must read the lower bound of a range built by %s as %s',
+      (_, type, expected) => {
+        expect(type).toBe(expected);
+      }
+    );
 
-    it('must return OPEN for an open lower bound', () => {
-      const range = Range.open(new TestComparable(3), new TestComparable(5));
-
-      expect(range.lowerBoundType()).toBe('OPEN');
-    });
-
-    it('must return UNBOUNDED when there is no lower bound', () => {
-      expect(Range.atMost(new TestComparable(5)).lowerBoundType()).toBe(
-        'UNBOUNDED'
-      );
+    it('must type the lower bound by the factory that built the range', () => {
+      expectTypeOf(
+        Range.open(three, five).lowerBoundType()
+      ).toEqualTypeOf<'OPEN'>();
+      expectTypeOf(
+        Range.closed(three, five).lowerBoundType()
+      ).toEqualTypeOf<'CLOSED'>();
+      expectTypeOf(
+        Range.closedOpen(three, five).lowerBoundType()
+      ).toEqualTypeOf<'CLOSED'>();
+      expectTypeOf(
+        Range.openClosed(three, five).lowerBoundType()
+      ).toEqualTypeOf<'OPEN'>();
+      expectTypeOf(
+        Range.greaterThan(three).lowerBoundType()
+      ).toEqualTypeOf<'OPEN'>();
+      expectTypeOf(
+        Range.atLeast(three).lowerBoundType()
+      ).toEqualTypeOf<'CLOSED'>();
+      expectTypeOf(
+        Range.lessThan(five).lowerBoundType()
+      ).toEqualTypeOf<'UNBOUNDED'>();
+      expectTypeOf(
+        Range.atMost(five).lowerBoundType()
+      ).toEqualTypeOf<'UNBOUNDED'>();
+      expectTypeOf(
+        Range.all<TestComparable>().lowerBoundType()
+      ).toEqualTypeOf<'UNBOUNDED'>();
+      expectTypeOf(
+        Range.singleton(three).lowerBoundType()
+      ).toEqualTypeOf<'CLOSED'>();
     });
   });
 
   describe('upperBoundType', () => {
-    it('must return CLOSED for a closed upper bound', () => {
-      const range = Range.closed(new TestComparable(3), new TestComparable(5));
+    const three = new TestComparable(3);
+    const five = new TestComparable(5);
 
-      expect(range.upperBoundType()).toBe('CLOSED');
-    });
+    it.each([
+      ['open', Range.open(three, five).upperBoundType(), 'OPEN'],
+      ['closed', Range.closed(three, five).upperBoundType(), 'CLOSED'],
+      ['closedOpen', Range.closedOpen(three, five).upperBoundType(), 'OPEN'],
+      ['openClosed', Range.openClosed(three, five).upperBoundType(), 'CLOSED'],
+      ['greaterThan', Range.greaterThan(three).upperBoundType(), 'UNBOUNDED'],
+      ['atLeast', Range.atLeast(three).upperBoundType(), 'UNBOUNDED'],
+      ['lessThan', Range.lessThan(five).upperBoundType(), 'OPEN'],
+      ['atMost', Range.atMost(five).upperBoundType(), 'CLOSED'],
+      ['all', Range.all<TestComparable>().upperBoundType(), 'UNBOUNDED'],
+      ['singleton', Range.singleton(three).upperBoundType(), 'CLOSED'],
+    ])(
+      'must read the upper bound of a range built by %s as %s',
+      (_, type, expected) => {
+        expect(type).toBe(expected);
+      }
+    );
 
-    it('must return OPEN for an open upper bound', () => {
-      const range = Range.open(new TestComparable(3), new TestComparable(5));
-
-      expect(range.upperBoundType()).toBe('OPEN');
-    });
-
-    it('must return UNBOUNDED when there is no upper bound', () => {
-      expect(Range.atLeast(new TestComparable(3)).upperBoundType()).toBe(
-        'UNBOUNDED'
-      );
+    it('must type the upper bound by the factory that built the range', () => {
+      expectTypeOf(
+        Range.open(three, five).upperBoundType()
+      ).toEqualTypeOf<'OPEN'>();
+      expectTypeOf(
+        Range.closed(three, five).upperBoundType()
+      ).toEqualTypeOf<'CLOSED'>();
+      expectTypeOf(
+        Range.closedOpen(three, five).upperBoundType()
+      ).toEqualTypeOf<'OPEN'>();
+      expectTypeOf(
+        Range.openClosed(three, five).upperBoundType()
+      ).toEqualTypeOf<'CLOSED'>();
+      expectTypeOf(
+        Range.greaterThan(three).upperBoundType()
+      ).toEqualTypeOf<'UNBOUNDED'>();
+      expectTypeOf(
+        Range.atLeast(three).upperBoundType()
+      ).toEqualTypeOf<'UNBOUNDED'>();
+      expectTypeOf(
+        Range.lessThan(five).upperBoundType()
+      ).toEqualTypeOf<'OPEN'>();
+      expectTypeOf(
+        Range.atMost(five).upperBoundType()
+      ).toEqualTypeOf<'CLOSED'>();
+      expectTypeOf(
+        Range.all<TestComparable>().upperBoundType()
+      ).toEqualTypeOf<'UNBOUNDED'>();
+      expectTypeOf(
+        Range.singleton(three).upperBoundType()
+      ).toEqualTypeOf<'CLOSED'>();
     });
   });
 
@@ -658,10 +885,20 @@ describe('Range', () => {
       range => {
         const canonical = range.canonical();
 
-        expect(canonical.lowerBoundType()).not.toBe('OPEN');
-        expect(canonical.upperBoundType()).not.toBe('CLOSED');
+        expect(canonical.lower()).not.toBeInstanceOf(AboveValue);
+        expect(canonical.upper()).not.toBeInstanceOf(AboveValue);
       }
     );
+
+    it('must type the cuts of a canonical range as below a value or unbounded', () => {
+      const bounded = Range.closed(Integer.of(1), Integer.of(2)).canonical();
+      const unbounded = Range.all<Integer>().canonical();
+
+      expectTypeOf(bounded.lower()).toEqualTypeOf<BelowValue<Integer>>();
+      expectTypeOf(bounded.upper()).toEqualTypeOf<BelowValue<Integer>>();
+      expectTypeOf(unbounded.lower()).toEqualTypeOf<BelowAll<Integer>>();
+      expectTypeOf(unbounded.upper()).toEqualTypeOf<AboveAll<Integer>>();
+    });
 
     it('must canonicalise ranges with the same integers to equal ranges', () => {
       const a = Range.open(Integer.of(0), Integer.of(3)).canonical();
