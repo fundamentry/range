@@ -1,3 +1,9 @@
+## 3.1.0
+
+### 🚀 Features
+
+- add 'RangeSet.of' and 'RangeSet.empty' factories ([d24afae](https://github.com/fundamentry/range/commit/d24afae))
+
 # 3.0.0
 
 ### 🚀 Features
