@@ -735,6 +735,117 @@ describe('Range', () => {
     });
   });
 
+  describe('precedes', () => {
+    it.each([
+      [
+        Range.closedOpen(Integer.of(0), Integer.of(2)),
+        Range.closedOpen(Integer.of(2), Integer.of(4)),
+        true,
+        false,
+      ],
+      [
+        Range.closedOpen(Integer.of(0), Integer.of(2)),
+        Range.closedOpen(Integer.of(1), Integer.of(3)),
+        false,
+        false,
+      ],
+      [
+        Range.closed(Integer.of(0), Integer.of(2)),
+        Range.closed(Integer.of(2), Integer.of(4)),
+        false,
+        false,
+      ],
+      [
+        Range.closed(Integer.of(0), Integer.of(2)),
+        Range.openClosed(Integer.of(2), Integer.of(4)),
+        true,
+        false,
+      ],
+      [
+        Range.closedOpen(Integer.of(0), Integer.of(2)),
+        Range.closed(Integer.of(2), Integer.of(4)),
+        true,
+        false,
+      ],
+      [
+        Range.closedOpen(Integer.of(2), Integer.of(2)),
+        Range.closedOpen(Integer.of(2), Integer.of(2)),
+        true,
+        true,
+      ],
+      [
+        Range.closedOpen(Integer.of(1), Integer.of(1)),
+        Range.closedOpen(Integer.of(1), Integer.of(3)),
+        true,
+        false,
+      ],
+      [
+        Range.closedOpen(Integer.of(1), Integer.of(3)),
+        Range.closedOpen(Integer.of(3), Integer.of(3)),
+        true,
+        false,
+      ],
+      [
+        Range.closedOpen(Integer.of(2), Integer.of(2)),
+        Range.closedOpen(Integer.of(1), Integer.of(3)),
+        false,
+        false,
+      ],
+      [
+        Range.lessThan(Integer.of(2)),
+        Range.atLeast(Integer.of(2)),
+        true,
+        false,
+      ],
+      [
+        Range.atLeast(Integer.of(2)),
+        Range.closedOpen(Integer.of(5), Integer.of(6)),
+        false,
+        false,
+      ],
+      [Range.all<Integer>(), Range.all<Integer>(), false, false],
+    ])(
+      'must tell whether %s precedes %s (%s) and the reverse (%s)',
+      (a, b, aPrecedesB, bPrecedesA) => {
+        expect(a.precedes(b)).toBe(aPrecedesB);
+        expect(b.precedes(a)).toBe(bPrecedesA);
+      }
+    );
+
+    it.each([
+      [
+        Range.open(new TestComparable(0), new TestComparable(2)),
+        Range.open(new TestComparable(2), new TestComparable(4)),
+        true,
+        false,
+      ],
+      [
+        Range.closed(new TestComparable(0), new TestComparable(2)),
+        Range.closed(new TestComparable(2), new TestComparable(4)),
+        false,
+        false,
+      ],
+      [
+        Range.atMost(new TestComparable(2)),
+        Range.greaterThan(new TestComparable(2)),
+        true,
+        false,
+      ],
+      [
+        Range.closed(new TestComparable(0), new TestComparable(1)),
+        Range.closed(new TestComparable(3), new TestComparable(4)),
+        true,
+        false,
+      ],
+    ])(
+      'must tell whether non-discrete %s precedes %s (%s) and the reverse (%s)',
+      (a, b, aPrecedesB, bPrecedesA) => {
+        expect(a.precedes(b)).toBe(aPrecedesB);
+        expect(b.precedes(a)).toBe(bPrecedesA);
+      }
+    );
+  });
+
   describe('intersection', () => {
     it('must return the overlapping range when the ranges touch at a shared boundary', () => {
       const a = Range.closed(new TestComparable(3), new TestComparable(5));

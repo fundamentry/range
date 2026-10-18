@@ -238,6 +238,10 @@ export class Range<
     );
   }
 
+  precedes(other: Range<T>): boolean {
+    return this.#upper.compareTo(other.#lower) <= 0;
+  }
+
   intersection(other: Range<T>): Range<T> | undefined {
     return this.isConnected(other) ? this.clamp(other) : undefined;
   }
