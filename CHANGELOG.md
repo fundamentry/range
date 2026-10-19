@@ -1,3 +1,9 @@
+## 3.3.0
+
+### 🚀 Features
+
+- make ranges and cuts equatable ([601284e](https://github.com/fundamentry/range/commit/601284e))
+
 ## 3.2.0
 
 ### 🚀 Features
