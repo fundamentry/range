@@ -1,6 +1,6 @@
-import { Comparable, type Stringable } from '@fundamentry/trait';
+import { Comparable, Equatable, type Stringable } from '@fundamentry/trait';
 
-import { type Cut } from './Cut.js';
+import { Cut } from './Cut.js';
 import { ValueCut } from './ValueCut.js';
 
 export class AboveValue<
@@ -22,6 +22,14 @@ export class AboveValue<
 
   override value(): T {
     return this.#value;
+  }
+
+  override equals(other: unknown): boolean {
+    return (
+      other instanceof Cut &&
+      other instanceof AboveValue &&
+      Equatable.equals<unknown>(this.#value, other.value())
+    );
   }
 
   override isBelow(value: T): boolean {

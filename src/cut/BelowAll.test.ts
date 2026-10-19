@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { type CodePoint, Integer } from '@fundamentry/scalar';
 import { Comparable, type Stringable } from '@fundamentry/trait';
 
 import { AboveAll } from './AboveAll.js';
@@ -46,6 +47,21 @@ describe('BelowAll', () => {
       const cut = new BelowAll<TestComparable>();
 
       expect(cut.compareTo(other)).toBe(expected);
+    });
+  });
+
+  describe('equals', () => {
+    it.each([
+      ['another below-all cut', new BelowAll<Integer>(), true],
+      ['an above-all cut', new AboveAll<Integer>(), false],
+      ['a below-value cut', new BelowValue(Integer.of(3)), false],
+      ['an above-value cut', new AboveValue(Integer.of(3)), false],
+      ['a below-all cut over another type', new BelowAll<CodePoint>(), true],
+      ['undefined', undefined, false],
+      ['a string', '-∞', false],
+      ['a plain object', {}, false],
+    ])('must tell whether it equals %s: %s', (_, other, expected) => {
+      expect(new BelowAll<Integer>().equals(other)).toBe(expected);
     });
   });
 

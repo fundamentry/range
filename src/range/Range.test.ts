@@ -1,7 +1,7 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
 
-import { Integer } from '@fundamentry/scalar';
-import { Comparable, type Stringable } from '@fundamentry/trait';
+import { CodePoint, Integer } from '@fundamentry/scalar';
+import { Comparable, Equatable, type Stringable } from '@fundamentry/trait';
 
 import {
   AboveAll,
@@ -269,6 +269,119 @@ describe('Range', () => {
     });
   });
 
+  describe('equals', () => {
+    it.each([
+      ['open', () => Range.open(Integer.of(1), Integer.of(2))],
+      ['closed', () => Range.closed(Integer.of(1), Integer.of(2))],
+      ['closedOpen', () => Range.closedOpen(Integer.of(1), Integer.of(2))],
+      ['openClosed', () => Range.openClosed(Integer.of(1), Integer.of(2))],
+      ['greaterThan', () => Range.greaterThan(Integer.of(1))],
+      ['atLeast', () => Range.atLeast(Integer.of(1))],
+      ['lessThan', () => Range.lessThan(Integer.of(2))],
+      ['atMost', () => Range.atMost(Integer.of(2))],
+      ['all', () => Range.all<Integer>()],
+      ['singleton', () => Range.singleton(Integer.of(1))],
+    ])('must equal a range with the same bounds from %s', (_, create) => {
+      expect(create().equals(create())).toBe(true);
+    });
+
+    it.each([
+      [
+        '[1..2]',
+        Range.closed(Integer.of(1), Integer.of(2)),
+        '[1..2)',
+        Range.closedOpen(Integer.of(1), Integer.of(2)),
+      ],
+      [
+        '(1..2]',
+        Range.openClosed(Integer.of(1), Integer.of(2)),
+        '[1..2]',
+        Range.closed(Integer.of(1), Integer.of(2)),
+      ],
+      [
+        '(1..2)',
+        Range.open(Integer.of(1), Integer.of(2)),
+        '[1..2)',
+        Range.closedOpen(Integer.of(1), Integer.of(2)),
+      ],
+      [
+        '(1..+∞)',
+        Range.greaterThan(Integer.of(1)),
+        '[1..+∞)',
+        Range.atLeast(Integer.of(1)),
+      ],
+      [
+        '(-∞..2)',
+        Range.lessThan(Integer.of(2)),
+        '(-∞..2]',
+        Range.atMost(Integer.of(2)),
+      ],
+    ])(
+      'must not equal when only a bound type differs: %s and %s',
+      (_, range, __, other) => {
+        expect(range.equals(other)).toBe(false);
+      }
+    );
+
+    it.each([
+      [
+        '[1..2]',
+        Range.closed(Integer.of(1), Integer.of(2)),
+        '[0..2]',
+        Range.closed(Integer.of(0), Integer.of(2)),
+      ],
+      [
+        '[1..2]',
+        Range.closed(Integer.of(1), Integer.of(2)),
+        '[1..3]',
+        Range.closed(Integer.of(1), Integer.of(3)),
+      ],
+      [
+        '[1..+∞)',
+        Range.atLeast(Integer.of(1)),
+        '(-∞..+∞)',
+        Range.all<Integer>(),
+      ],
+      [
+        '(-∞..2]',
+        Range.atMost(Integer.of(2)),
+        '(-∞..+∞)',
+        Range.all<Integer>(),
+      ],
+    ])(
+      'must not equal when an endpoint differs: %s and %s',
+      (_, range, __, other) => {
+        expect(range.equals(other)).toBe(false);
+      }
+    );
+
+    it('must compare bounds rather than the values they contain', () => {
+      const closed = Range.closed(Integer.of(1), Integer.of(2));
+      const closedOpen = Range.closedOpen(Integer.of(1), Integer.of(3));
+
+      expect(closed.equals(closedOpen)).toBe(false);
+      expect(closed.canonical().equals(closedOpen.canonical())).toBe(true);
+    });
+
+    it.each([
+      [
+        'a range over another scalar',
+        Range.closed(CodePoint.of(1), CodePoint.of(2)),
+      ],
+      [
+        'a range over values without equality',
+        Range.closed(new TestComparable(1), new TestComparable(2)),
+      ],
+      ['undefined', undefined],
+      ['a string', '[1..2]'],
+      ['a plain object', {}],
+    ])('must not equal %s', (_, other) => {
+      expect(Range.closed(Integer.of(1), Integer.of(2)).equals(other)).toBe(
+        false
+      );
+    });
+  });
+
   describe('[Comparable.symbol]', () => {
     it('must delegate to compareTo', () => {
       const a = Range.closed(new TestComparable(1), new TestComparable(9));
@@ -276,6 +389,33 @@ describe('Range', () => {
 
       expect(a[Comparable.symbol](b)).toBe(a.compareTo(b));
       expect(b[Comparable.symbol](a)).toBe(b.compareTo(a));
+    });
+  });
+
+  describe('[Equatable.symbol]', () => {
+    it.each([
+      [Range.closed(Integer.of(1), Integer.of(2)), true],
+      [Range.closed(Integer.of(1), Integer.of(3)), false],
+    ])('must delegate to equals for [1..2] and %s', (other, expected) => {
+      const range = Range.closed(Integer.of(1), Integer.of(2));
+
+      expect(range[Equatable.symbol](other)).toBe(expected);
+    });
+
+    it('must make a range equatable', () => {
+      expect(Equatable.is(Range.all<Integer>())).toBe(true);
+      expect(
+        Equatable.equals(
+          Range.closed(Integer.of(1), Integer.of(2)),
+          Range.closed(Integer.of(1), Integer.of(2))
+        )
+      ).toBe(true);
+      expect(
+        Equatable.equals(
+          Range.closed(Integer.of(1), Integer.of(2)),
+          Range.closed(Integer.of(5), Integer.of(9))
+        )
+      ).toBe(false);
     });
   });
 

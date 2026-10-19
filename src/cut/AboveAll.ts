@@ -11,6 +11,10 @@ export class AboveAll<T extends Comparable<T> & Stringable> extends Cut<T> {
     return other instanceof AboveAll ? 0 : 1;
   }
 
+  override equals(other: unknown): boolean {
+    return other instanceof AboveAll;
+  }
+
   override toString(): '+∞' {
     return '+∞';
   }

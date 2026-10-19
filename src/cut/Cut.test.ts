@@ -1,6 +1,7 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
 
-import { Comparable, type Stringable } from '@fundamentry/trait';
+import { Integer } from '@fundamentry/scalar';
+import { Comparable, Equatable, type Stringable } from '@fundamentry/trait';
 
 import { AboveAll } from './AboveAll.js';
 import { AboveValue } from './AboveValue.js';
@@ -83,6 +84,27 @@ describe('Cut', () => {
 
       expect(below[Comparable.symbol](above)).toBe(-1);
       expect(above[Comparable.symbol](below)).toBe(1);
+    });
+  });
+
+  describe('[Equatable.symbol]', () => {
+    it.each([
+      [new BelowAll<Integer>(), new BelowAll<Integer>(), true],
+      [new AboveAll<Integer>(), new BelowAll<Integer>(), false],
+      [new BelowValue(Integer.of(3)), new BelowValue(Integer.of(3)), true],
+      [new AboveValue(Integer.of(3)), new BelowValue(Integer.of(3)), false],
+    ])('must delegate to equals for %s and %s', (cut, other, expected) => {
+      expect(cut[Equatable.symbol](other)).toBe(expected);
+    });
+
+    it('must make a cut equatable', () => {
+      expect(Equatable.is(new BelowValue(Integer.of(3)))).toBe(true);
+      expect(
+        Equatable.equals(
+          new AboveValue(Integer.of(3)),
+          new AboveValue(Integer.of(3))
+        )
+      ).toBe(true);
     });
   });
 

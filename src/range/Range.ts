@@ -1,5 +1,10 @@
 import { Comparator } from '@fundamentry/order';
-import { Comparable, Discrete, type Stringable } from '@fundamentry/trait';
+import {
+  Comparable,
+  Discrete,
+  Equatable,
+  type Stringable,
+} from '@fundamentry/trait';
 
 import {
   AboveAll,
@@ -81,7 +86,7 @@ export class Range<
   L extends Cut.Lower<T> = Cut.Lower<T>,
   U extends Cut.Upper<T> = Cut.Upper<T>,
 >
-  implements Comparable<Range<T>>, Stringable
+  implements Comparable<Range<T>>, Equatable, Stringable
 {
   readonly #lower: L;
 
@@ -170,8 +175,20 @@ export class Range<
       .compare(this, other);
   }
 
+  equals(other: unknown): boolean {
+    return (
+      other instanceof Range &&
+      this.#lower.equals(other.#lower) &&
+      this.#upper.equals(other.#upper)
+    );
+  }
+
   [Comparable.symbol](other: Range<T>): number {
     return this.compareTo(other);
+  }
+
+  [Equatable.symbol](other: unknown): boolean {
+    return this.equals(other);
   }
 
   [Symbol.toPrimitive](): string {

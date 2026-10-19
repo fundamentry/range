@@ -1,5 +1,6 @@
 import { describe, expect, expectTypeOf, it } from 'vitest';
 
+import { CodePoint, Integer } from '@fundamentry/scalar';
 import { Comparable, type Stringable } from '@fundamentry/trait';
 
 import { AboveAll } from './AboveAll.js';
@@ -66,6 +67,46 @@ describe('BelowValue', () => {
       const value = new TestComparable(3);
 
       expect(new BelowValue(value).value()).toBe(value);
+    });
+  });
+
+  describe('equals', () => {
+    it.each([
+      [
+        'a below-value cut at the same value',
+        new BelowValue(Integer.of(3)),
+        true,
+      ],
+      [
+        'a below-value cut at another value',
+        new BelowValue(Integer.of(4)),
+        false,
+      ],
+      [
+        'an above-value cut at the same value',
+        new AboveValue(Integer.of(3)),
+        false,
+      ],
+      ['a below-all cut', new BelowAll<Integer>(), false],
+      ['an above-all cut', new AboveAll<Integer>(), false],
+      [
+        'a below-value cut at a value of another type',
+        new BelowValue(CodePoint.of(3)),
+        false,
+      ],
+      ['undefined', undefined, false],
+      ['a string', '3', false],
+      ['a plain object', {}, false],
+    ])('must tell whether a cut at 3 equals %s: %s', (_, other, expected) => {
+      expect(new BelowValue(Integer.of(3)).equals(other)).toBe(expected);
+    });
+
+    it('must not throw for a cut at a value without equality', () => {
+      expect(
+        new BelowValue(Integer.of(3)).equals(
+          new BelowValue(new TestComparable(3))
+        )
+      ).toBe(false);
     });
   });
 
